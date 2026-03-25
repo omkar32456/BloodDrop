@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BloodDrop - Save Lives, Donate Blood</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo"><span class="drop">🩸</span> Blood<span>Drop</span></a>
+  <div class="nav-links">
+    <a href="find-blood.html">Find Blood</a>
+    <a href="donor-login.html">Donor Login</a>
+    <a href="hospital-login.html">Hospital Login</a>
+    <a href="donor-login.html?tab=register" class="btn-nav">Donate Now</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1>Every Drop Counts.<br><span>Save a Life Today.</span></h1>
+  <p>Connect blood donors with hospitals in real-time. Find blood, register as a donor, or manage your hospital's blood bank.</p>
+  <div class="hero-btns">
+    <a href="donor-login.html?tab=register" class="btn btn-primary">🩸 Become a Donor</a>
+    <a href="find-blood.html" class="btn btn-outline">🔍 Find Blood</a>
+    <a href="hospital-login.html" class="btn btn-outline">🏥 Register Hospital</a>
+  </div>
+</section>
+
+<div class="stats" id="stats">
+  <div class="stat-item"><h2 id="s-donors">...</h2><p>Available Donors</p></div>
+  <div class="stat-item"><h2 id="s-hospitals">...</h2><p>Registered Hospitals</p></div>
+  <div class="stat-item"><h2 id="s-donations">...</h2><p>Lives Saved</p></div>
+  <div class="stat-item"><h2 id="s-requests">...</h2><p>Open Requests</p></div>
+</div>
+
+<section class="section" style="background:white;">
+  <div class="container">
+    <div class="section-title">
+      <h2>How <span>BloodDrop</span> Works</h2>
+      <p>Simple steps to save a life</p>
+    </div>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-icon">📝</div>
+        <h3>Register</h3>
+        <p>Sign up as a donor with your blood group and location details in minutes.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔍</div>
+        <h3>Find Blood</h3>
+        <p>Search for available donors or hospitals with required blood group near you.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤝</div>
+        <h3>Connect</h3>
+        <p>Hospitals post urgent requests. Donors respond and schedule donations.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">❤️</div>
+        <h3>Save Lives</h3>
+        <p>Your donation is recorded and tracked. Every unit makes a difference.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="blood-types">
+  <div class="section-title">
+    <h2>All Blood <span style="color:var(--red)">Types</span> Needed</h2>
+    <p style="color:rgba(255,255,255,0.6)">We accept all blood groups</p>
+  </div>
+  <div class="blood-grid">
+    <div class="blood-type-card"><div class="bg-type">A+</div><div class="bg-label">Common</div></div>
+    <div class="blood-type-card"><div class="bg-type">A-</div><div class="bg-label">Rare</div></div>
+    <div class="blood-type-card"><div class="bg-type">B+</div><div class="bg-label">Common</div></div>
+    <div class="blood-type-card"><div class="bg-type">B-</div><div class="bg-label">Rare</div></div>
+    <div class="blood-type-card"><div class="bg-type">AB+</div><div class="bg-label">Universal</div></div>
+    <div class="blood-type-card"><div class="bg-type">AB-</div><div class="bg-label">Rare</div></div>
+    <div class="blood-type-card"><div class="bg-type">O+</div><div class="bg-label">Common</div></div>
+    <div class="blood-type-card"><div class="bg-type">O-</div><div class="bg-label">Universal</div></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-title">
+      <h2>Who Can <span>Join?</span></h2>
+      <p>Two portals — one mission</p>
+    </div>
+    <div class="cards-grid" style="grid-template-columns:1fr 1fr; max-width:700px; margin:0 auto;">
+      <div class="card" style="border-top:4px solid var(--red);">
+        <div class="card-icon">🙋</div>
+        <h3>Donors</h3>
+        <p>Register, update availability, track your donation history and respond to urgent requests.</p>
+        <br>
+        <a href="donor-login.html?tab=register" class="btn btn-primary btn-sm">Register as Donor</a>
+      </div>
+      <div class="card" style="border-top:4px solid #1a1a2e;">
+        <div class="card-icon">🏥</div>
+        <h3>Hospitals</h3>
+        <p>Manage blood inventory, post urgent requests, find donors and record donations.</p>
+        <br>
+        <a href="hospital-login.html?tab=register" class="btn btn-secondary btn-sm">Register Hospital</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>🩸 <span>BloodDrop</span> — Connecting donors & hospitals to save lives. &copy; 2024</p>
+</footer>
+
+<script src="js/app.js"></script>
+<script>
+fetch(BASE_URL + '/blood/stats')
+  .then(r => r.json())
+  .then(d => {
+    document.getElementById('s-donors').textContent = d.available_donors || 0;
+    document.getElementById('s-hospitals').textContent = d.hospitals || 0;
+    document.getElementById('s-donations').textContent = d.completed_donations || 0;
+    document.getElementById('s-requests').textContent = d.open_requests || 0;
+  })
+  .catch(() => {
+    document.getElementById('s-donors').textContent = '500+';
+    document.getElementById('s-hospitals').textContent = '50+';
+    document.getElementById('s-donations').textContent = '1200+';
+    document.getElementById('s-requests').textContent = '20+';
+  });
+</script>
+</body>
+</html>

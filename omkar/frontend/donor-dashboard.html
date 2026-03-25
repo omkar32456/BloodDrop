@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Donor Dashboard - BloodDrop</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="dashboard">
+  <div class="sidebar">
+    <div class="sidebar-logo">🩸 Blood<span>Drop</span></div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="avatarLetter">D</div>
+      <div class="user-info"><strong id="sidebarName">Donor</strong><p>Donor Account</p></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="active" onclick="showPanel('overview')"><span class="icon">📊</span> Overview</a>
+      <a onclick="showPanel('profile')"><span class="icon">👤</span> My Profile</a>
+      <a onclick="showPanel('history')"><span class="icon">📋</span> Donation History</a>
+      <a onclick="showPanel('requests')"><span class="icon">🆘</span> Blood Requests</a>
+      <a onclick="showPanel('find')"><span class="icon">🔍</span> Find Blood</a>
+      <a onclick="showPanel('certificate')"><span class="icon">🏅</span> My Certificate</a>
+      <a onclick="logout()" style="margin-top:auto; color:rgba(255,100,100,0.8)"><span class="icon">🚪</span> Logout</a>
+    </nav>
+  </div>
+
+  <div class="main-content">
+    <!-- OVERVIEW -->
+    <div class="panel active" id="panel-overview">
+      <div class="dash-header">
+        <div><h1>Welcome back, <span id="welcomeName" style="color:var(--red)">Donor</span>!</h1><p>Your blood donation dashboard</p></div>
+        <button class="btn btn-primary btn-sm" onclick="toggleAvailability()">Toggle Availability</button>
+      </div>
+      <div class="profile-card" id="profileCard">
+        <div class="profile-avatar" id="profileAvatar">D</div>
+        <div class="profile-info">
+          <h2 id="profileName">Loading...</h2>
+          <p id="profileEmail"></p>
+          <p id="profileLocation"></p>
+          <div class="profile-badges">
+            <span class="profile-badge pb-blood" id="profileBlood">--</span>
+            <span class="profile-badge" id="profileAvailBadge">Loading...</span>
+          </div>
+        </div>
+      </div>
+      <div class="dash-stats">
+        <div class="dash-stat"><div class="stat-icon red">🩸</div><div class="stat-info"><h3 id="totalDonations">0</h3><p>Total Donations</p></div></div>
+        <div class="dash-stat"><div class="stat-icon green">✅</div><div class="stat-info"><h3 id="lastDonation">N/A</h3><p>Last Donation</p></div></div>
+        <div class="dash-stat"><div class="stat-icon blue">📅</div><div class="stat-info"><h3 id="nextEligible">N/A</h3><p>Next Eligible</p></div></div>
+        <div class="dash-stat"><div class="stat-icon orange">🏆</div><div class="stat-info"><h3 id="livesSaved">0</h3><p>Lives Saved</p></div></div>
+      </div>
+      <div class="panel active" style="margin-top:0">
+        <div class="panel-header"><h2>Recent Urgent Requests Near You</h2></div>
+        <div id="urgentRequests"><div class="loading"><div class="spinner"></div>Loading requests...</div></div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="panel" id="panel-profile">
+      <div class="panel-header"><h2>My Profile</h2></div>
+      <div id="alert-profile" class="alert"></div>
+      <form onsubmit="updateProfile(event)">
+        <div class="form-row">
+          <div class="form-group"><label>Phone</label><input type="tel" id="p-phone" placeholder="+91 9999999999"></div>
+          <div class="form-group"><label>Age</label><input type="number" id="p-age" min="18" max="65"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>City</label><input type="text" id="p-city"></div>
+          <div class="form-group"><label>State</label><input type="text" id="p-state"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Weight (kg)</label><input type="number" id="p-weight" min="50"></div>
+          <div class="form-group"><label>Last Donation Date</label><input type="date" id="p-lastdonation"></div>
+        </div>
+        <div class="form-group">
+          <label>Availability</label>
+          <select id="p-available">
+            <option value="1">Available to Donate</option>
+            <option value="0">Not Available</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </form>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="panel" id="panel-history">
+      <div class="panel-header"><h2>Donation History</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Hospital</th><th>City</th><th>Blood Group</th><th>Units</th><th>Status</th></tr></thead>
+          <tbody id="historyTable"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REQUESTS -->
+    <div class="panel" id="panel-requests">
+      <div class="panel-header"><h2>Open Blood Requests</h2><a href="find-blood.html" class="btn btn-primary btn-sm">Find Blood</a></div>
+      <div id="requestsList"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+    </div>
+
+    <!-- FIND -->
+    <div class="panel" id="panel-find">
+      <div class="panel-header"><h2>Find Blood / Donors</h2></div>
+      <p style="color:#666">Use our advanced search to find blood donors or hospitals.</p>
+      <br>
+      <a href="find-blood.html" class="btn btn-primary">🔍 Open Blood Finder</a>
+    </div>
+
+    <!-- CERTIFICATE -->
+    <div class="panel" id="panel-certificate">
+      <div class="panel-header">
+        <h2>🏅 Donation Certificate</h2>
+        <button class="btn btn-primary btn-sm" onclick="printCertificate()">🖨️ Print / Download</button>
+      </div>
+      <div id="cert-select-wrap" style="margin-bottom:1.5rem">
+        <label style="font-weight:600;color:#333;display:block;margin-bottom:8px">Select Donation:</label>
+        <select id="cert-donation-select" onchange="renderCertificate()" style="padding:10px 16px;border:2px solid #dee2e6;border-radius:10px;font-size:0.95rem;outline:none;min-width:300px">
+          <option value="">-- Select a donation --</option>
+        </select>
+      </div>
+      <div id="cert-empty" class="empty-state">
+        <div class="empty-icon">🏅</div>
+        <p>No donations yet. Make a donation to get your certificate.</p>
+      </div>
+      <div id="certificate-box" style="display:none">
+        <div id="certificate">
+          <div class="cert-border">
+            <div class="cert-header">
+              <div class="cert-logo">🩸 BloodDrop</div>
+              <div class="cert-title">Certificate of Blood Donation</div>
+              <div class="cert-subtitle">This is to certify that</div>
+            </div>
+            <div class="cert-name" id="cert-name">Donor Name</div>
+            <div class="cert-body">
+              has successfully donated blood and contributed to saving lives.
+            </div>
+            <div class="cert-details">
+              <div class="cert-detail-item">
+                <span class="cert-label">🩸 Blood Group</span>
+                <span class="cert-value" id="cert-blood">--</span>
+              </div>
+              <div class="cert-detail-item">
+                <span class="cert-label">📅 Donation Date</span>
+                <span class="cert-value" id="cert-date">--</span>
+              </div>
+              <div class="cert-detail-item">
+                <span class="cert-label">🏥 Hospital</span>
+                <span class="cert-value" id="cert-hospital">--</span>
+              </div>
+              <div class="cert-detail-item">
+                <span class="cert-label">💧 Units Donated</span>
+                <span class="cert-value" id="cert-units">--</span>
+              </div>
+            </div>
+            <div class="cert-footer">
+              <div class="cert-sign">
+                <div class="cert-sign-line"></div>
+                <div>BloodDrop Authority</div>
+              </div>
+              <div class="cert-seal">🩸</div>
+              <div class="cert-sign">
+                <div class="cert-sign-line"></div>
+                <div>Hospital Verified</div>
+              </div>
+            </div>
+            <div class="cert-id" id="cert-id">Certificate ID: BD-0000</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+requireAuth('donor');
+const user = getUser();
+
+document.getElementById('sidebarName').textContent = user.name || 'Donor';
+document.getElementById('avatarLetter').textContent = (user.name || 'D')[0].toUpperCase();
+document.getElementById('welcomeName').textContent = user.name || 'Donor';
+
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'history') loadHistory();
+  if (name === 'requests') loadRequests();
+  if (name === 'profile') loadProfile();
+  if (name === 'certificate') loadCertificate();
+}
+
+async function loadOverview() {
+  try {
+    const profile = await api('/donor/profile', 'GET');
+    document.getElementById('profileName').textContent = profile.name;
+    document.getElementById('profileEmail').textContent = profile.email;
+    document.getElementById('profileLocation').textContent = `📍 ${profile.city || ''}, ${profile.state || ''}`;
+    document.getElementById('profileBlood').textContent = profile.blood_group;
+    document.getElementById('profileAvatar').textContent = profile.name[0].toUpperCase();
+    const avail = profile.is_available;
+    const badge = document.getElementById('profileAvailBadge');
+    badge.textContent = avail ? '✅ Available' : '❌ Unavailable';
+    badge.className = 'profile-badge ' + (avail ? 'pb-available' : 'pb-unavailable');
+
+    const donations = await api('/donor/donations', 'GET');
+    document.getElementById('totalDonations').textContent = donations.length;
+    document.getElementById('livesSaved').textContent = donations.filter(d => d.status === 'completed').length;
+    if (profile.last_donation) {
+      document.getElementById('lastDonation').textContent = new Date(profile.last_donation).toLocaleDateString();
+      const next = new Date(profile.last_donation);
+      next.setDate(next.getDate() + 90);
+      document.getElementById('nextEligible').textContent = next.toLocaleDateString();
+    }
+  } catch(e) {}
+
+  try {
+    const reqs = await fetch(`${BASE_URL}/blood/requests?urgency=critical`).then(r => r.json());
+    const container = document.getElementById('urgentRequests');
+    if (!reqs.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><p>No critical requests right now</p></div>'; return; }
+    container.innerHTML = '<div class="results-grid">' + reqs.slice(0,4).map(r => `
+      <div class="result-card urgency-${r.urgency}">
+        <div class="rc-header"><h3>${r.hospital_name}</h3><span class="blood-badge">${r.blood_group}</span></div>
+        <div class="rc-info">
+          <span>📍 ${r.city}, ${r.state}</span>
+          <span>📞 ${r.phone || 'N/A'}</span>
+          <span>🩸 ${r.units_needed} units needed</span>
+        </div>
+        <span class="badge badge-red">${r.urgency.toUpperCase()}</span>
+      </div>`).join('') + '</div>';
+  } catch(e) {}
+}
+
+async function loadProfile() {
+  try {
+    const p = await api('/donor/profile', 'GET');
+    document.getElementById('p-phone').value = p.phone || '';
+    document.getElementById('p-age').value = p.age || '';
+    document.getElementById('p-city').value = p.city || '';
+    document.getElementById('p-state').value = p.state || '';
+    document.getElementById('p-weight').value = p.weight || '';
+    document.getElementById('p-lastdonation').value = p.last_donation ? p.last_donation.split('T')[0] : '';
+    document.getElementById('p-available').value = p.is_available ? '1' : '0';
+  } catch(e) {}
+}
+
+async function updateProfile(e) {
+  e.preventDefault();
+  try {
+    await api('/donor/profile', 'PUT', {
+      phone: val('p-phone'), city: val('p-city'), state: val('p-state'),
+      age: val('p-age'), weight: val('p-weight'),
+      is_available: document.getElementById('p-available').value === '1',
+      last_donation: val('p-lastdonation') || null
+    });
+    showAlertIn('alert-profile', 'Profile updated successfully!', 'success');
+  } catch(err) { showAlertIn('alert-profile', err.message, 'error'); }
+}
+
+async function loadHistory() {
+  try {
+    const data = await api('/donor/donations', 'GET');
+    const tbody = document.getElementById('historyTable');
+    if (!data.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📋</div><p>No donations yet</p></div></td></tr>'; return; }
+    tbody.innerHTML = data.map(d => `<tr>
+      <td>${new Date(d.donation_date).toLocaleDateString()}</td>
+      <td>${d.hospital_name}</td><td>${d.hospital_city}</td>
+      <td><span class="blood-badge">${d.blood_group}</span></td>
+      <td>${d.units}</td>
+      <td><span class="badge badge-${d.status === 'completed' ? 'green' : d.status === 'scheduled' ? 'blue' : 'gray'}">${d.status}</span></td>
+    </tr>`).join('');
+  } catch(e) {}
+}
+
+async function loadRequests() {
+  try {
+    const data = await fetch(`${BASE_URL}/blood/requests`).then(r => r.json());
+    const container = document.getElementById('requestsList');
+    if (!data.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><p>No open requests</p></div>'; return; }
+    container.innerHTML = '<div class="results-grid">' + data.map(r => `
+      <div class="result-card urgency-${r.urgency}">
+        <div class="rc-header"><h3>${r.hospital_name}</h3><span class="blood-badge">${r.blood_group}</span></div>
+        <div class="rc-info">
+          <span>📍 ${r.city}, ${r.state}</span>
+          <span>📞 ${r.phone || 'N/A'}</span>
+          <span>🩸 ${r.units_needed} units needed</span>
+          <span>👤 Patient: ${r.patient_name || 'Anonymous'}</span>
+        </div>
+        <span class="badge badge-${r.urgency === 'critical' ? 'red' : r.urgency === 'urgent' ? 'orange' : 'green'}">${r.urgency.toUpperCase()}</span>
+      </div>`).join('') + '</div>';
+  } catch(e) {}
+}
+
+async function toggleAvailability() {
+  try {
+    const p = await api('/donor/profile', 'GET');
+    await api('/donor/profile', 'PUT', { ...p, is_available: !p.is_available });
+    loadOverview();
+  } catch(e) {}
+}
+
+let allDonations = [];
+
+async function loadCertificate() {
+  try {
+    allDonations = await api('/donor/donations', 'GET');
+    const select = document.getElementById('cert-donation-select');
+    const completed = allDonations.filter(d => d.status === 'completed');
+    if (!completed.length) {
+      document.getElementById('cert-empty').style.display = 'block';
+      document.getElementById('cert-select-wrap').style.display = 'none';
+      document.getElementById('certificate-box').style.display = 'none';
+      return;
+    }
+    document.getElementById('cert-empty').style.display = 'none';
+    document.getElementById('cert-select-wrap').style.display = 'block';
+    select.innerHTML = '<option value="">-- Select a donation --</option>' +
+      completed.map(d => `<option value="${d.id}">📅 ${new Date(d.donation_date).toLocaleDateString()} — ${d.hospital_name} (${d.blood_group})</option>`).join('');
+    if (completed.length === 1) { select.value = completed[0].id; renderCertificate(); }
+  } catch(e) {}
+}
+
+function renderCertificate() {
+  const id = document.getElementById('cert-donation-select').value;
+  if (!id) { document.getElementById('certificate-box').style.display = 'none'; return; }
+  const d = allDonations.find(x => x.id == id);
+  if (!d) return;
+  const profile = getUser();
+  document.getElementById('cert-name').textContent = profile.name || 'Donor';
+  document.getElementById('cert-blood').textContent = d.blood_group;
+  document.getElementById('cert-date').textContent = new Date(d.donation_date).toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('cert-hospital').textContent = d.hospital_name + (d.hospital_city ? ', ' + d.hospital_city : '');
+  document.getElementById('cert-units').textContent = d.units + ' Unit(s)';
+  document.getElementById('cert-id').textContent = 'Certificate ID: BD-' + String(d.id).padStart(4, '0');
+  document.getElementById('certificate-box').style.display = 'block';
+}
+
+function printCertificate() {
+  const cert = document.getElementById('certificate').innerHTML;
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>BloodDrop Certificate</title>
+  <style>
+    body{margin:0;padding:20px;font-family:'Segoe UI',sans-serif;background:#fff;}
+    .cert-border{border:8px double #e63946;border-radius:20px;padding:40px;max-width:750px;margin:0 auto;position:relative;background:linear-gradient(135deg,#fff9f9,#fff);}
+    .cert-header{text-align:center;margin-bottom:20px;}
+    .cert-logo{font-size:2rem;font-weight:800;color:#e63946;margin-bottom:8px;}
+    .cert-title{font-size:1.8rem;font-weight:800;color:#1a1a2e;letter-spacing:1px;}
+    .cert-subtitle{color:#666;margin-top:8px;font-size:1rem;}
+    .cert-name{text-align:center;font-size:2.5rem;font-weight:800;color:#e63946;margin:20px 0;font-style:italic;border-bottom:2px solid #e63946;padding-bottom:10px;}
+    .cert-body{text-align:center;color:#444;font-size:1rem;margin-bottom:25px;line-height:1.6;}
+    .cert-details{display:grid;grid-template-columns:1fr 1fr;gap:15px;background:#fff5f5;border-radius:12px;padding:20px;margin-bottom:25px;}
+    .cert-detail-item{display:flex;flex-direction:column;gap:4px;}
+    .cert-label{font-size:0.8rem;color:#999;font-weight:600;text-transform:uppercase;}
+    .cert-value{font-size:1rem;font-weight:700;color:#1a1a2e;}
+    .cert-footer{display:flex;justify-content:space-between;align-items:center;margin-top:20px;}
+    .cert-sign{text-align:center;font-size:0.85rem;color:#666;}
+    .cert-sign-line{width:120px;border-top:2px solid #333;margin-bottom:6px;}
+    .cert-seal{font-size:3rem;}
+    .cert-id{text-align:center;margin-top:15px;font-size:0.8rem;color:#aaa;}
+    @media print{body{padding:0;}}
+  </style></head><body>${cert}</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 500);
+}
+
+loadOverview();
+</script>
+</body>
+</html>

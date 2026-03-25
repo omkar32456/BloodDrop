@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find Blood - BloodDrop</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo"><span class="drop">🩸</span> Blood<span>Drop</span></a>
+  <div class="nav-links">
+    <a href="find-blood.html">Find Blood</a>
+    <a href="donor-login.html">Donor Login</a>
+    <a href="hospital-login.html">Hospital Login</a>
+    <a href="donor-login.html?tab=register" class="btn-nav">Donate Now</a>
+  </div>
+</nav>
+
+<div class="find-hero">
+  <h1>Find <span>Blood</span> Now</h1>
+  <p>Search for available donors, hospitals, or urgent blood requests near you</p>
+
+  <div class="search-tabs">
+    <button class="search-tab active" onclick="switchTab('donors',this)">🙋 Find Donors</button>
+    <button class="search-tab" onclick="switchTab('hospitals',this)">🏥 Find Hospitals</button>
+    <button class="search-tab" onclick="switchTab('requests',this)">🆘 Urgent Requests</button>
+  </div>
+
+  <div class="search-box">
+    <div class="search-form">
+      <div>
+        <label style="display:block;font-size:0.85rem;font-weight:600;color:#333;margin-bottom:6px">Blood Group *</label>
+        <select id="s-blood">
+          <option value="">Select Blood Group</option>
+          <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+          <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:0.85rem;font-weight:600;color:#333;margin-bottom:6px">City</label>
+        <input type="text" id="s-city" placeholder="e.g. Mumbai">
+      </div>
+      <div>
+        <label style="display:block;font-size:0.85rem;font-weight:600;color:#333;margin-bottom:6px">State</label>
+        <input type="text" id="s-state" placeholder="e.g. Maharashtra">
+      </div>
+      <button class="btn btn-primary" onclick="doSearch()">Search</button>
+    </div>
+  </div>
+</div>
+
+<div class="results-section">
+  <div id="resultsHeader" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+    <h2 style="font-size:1.3rem;color:#1a1a2e">Search Results</h2>
+    <span id="resultCount" style="color:#666;font-size:0.9rem"></span>
+  </div>
+  <div id="results">
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <p>Select a blood group and search to find donors or hospitals</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>🩸 <span>BloodDrop</span> — Connecting donors & hospitals to save lives. &copy; 2024</p>
+</footer>
+
+<script src="js/app.js"></script>
+<script>
+let currentTab = 'donors';
+
+function switchTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('results').innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p>Click Search to find results</p></div>';
+  document.getElementById('resultCount').textContent = '';
+}
+
+async function doSearch() {
+  const blood = document.getElementById('s-blood').value;
+  const city = document.getElementById('s-city').value;
+  const state = document.getElementById('s-state').value;
+
+  if (!blood && currentTab !== 'requests') {
+    document.getElementById('results').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Please select a blood group</p></div>';
+    return;
+  }
+
+  document.getElementById('results').innerHTML = '<div class="loading"><div class="spinner"></div><p>Searching...</p></div>';
+
+  try {
+    let url, data;
+    const params = new URLSearchParams();
+    if (blood) params.append('blood_group', blood);
+    if (city) params.append('city', city);
+    if (state) params.append('state', state);
+
+    if (currentTab === 'donors') {
+      data = await fetch(`${BASE_URL}/blood/donors?${params}`).then(r => r.json());
+      renderDonors(data);
+    } else if (currentTab === 'hospitals') {
+      data = await fetch(`${BASE_URL}/blood/hospitals?${params}`).then(r => r.json());
+      renderHospitals(data);
+    } else {
+      data = await fetch(`${BASE_URL}/blood/requests?${params}`).then(r => r.json());
+      renderRequests(data);
+    }
+  } catch(e) {
+    document.getElementById('results').innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><p>Error connecting to server. Make sure backend is running.</p></div>';
+  }
+}
+
+function renderDonors(data) {
+  document.getElementById('resultCount').textContent = `${data.length} donor(s) found`;
+  if (!data.length) { document.getElementById('results').innerHTML = '<div class="empty-state"><div class="empty-icon">😔</div><p>No available donors found for this blood group in your area</p></div>'; return; }
+  document.getElementById('results').innerHTML = '<div class="results-grid">' + data.map(d => `
+    <div class="result-card">
+      <div class="rc-header">
+        <h3>${d.name}</h3>
+        <span class="blood-badge">${d.blood_group}</span>
+      </div>
+      <div class="rc-info">
+        <span>📍 ${d.city || 'N/A'}, ${d.state || ''}</span>
+        <span>📞 ${d.phone || 'Contact via hospital'}</span>
+        <span>🗓 Last donated: ${d.last_donation ? new Date(d.last_donation).toLocaleDateString() : 'Never'}</span>
+      </div>
+      <span class="badge badge-green">✅ Available</span>
+    </div>`).join('') + '</div>';
+}
+
+function renderHospitals(data) {
+  document.getElementById('resultCount').textContent = `${data.length} hospital(s) found`;
+  if (!data.length) { document.getElementById('results').innerHTML = '<div class="empty-state"><div class="empty-icon">🏥</div><p>No hospitals found with this blood group available</p></div>'; return; }
+  document.getElementById('results').innerHTML = '<div class="results-grid">' + data.map(h => `
+    <div class="result-card">
+      <div class="rc-header">
+        <h3>${h.name}</h3>
+        <span class="blood-badge">${document.getElementById('s-blood').value}</span>
+      </div>
+      <div class="rc-info">
+        <span>📍 ${h.city}, ${h.state}</span>
+        <span>📞 ${h.phone || 'N/A'}</span>
+        <span>🏠 ${h.address || 'N/A'}</span>
+        <span>🩸 ${h.units_available} units available</span>
+      </div>
+      <span class="badge badge-blue">🏥 Hospital</span>
+    </div>`).join('') + '</div>';
+}
+
+function renderRequests(data) {
+  document.getElementById('resultCount').textContent = `${data.length} open request(s)`;
+  if (!data.length) { document.getElementById('results').innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><p>No open blood requests found</p></div>'; return; }
+  document.getElementById('results').innerHTML = '<div class="results-grid">' + data.map(r => `
+    <div class="result-card urgency-${r.urgency}">
+      <div class="rc-header">
+        <h3>${r.hospital_name}</h3>
+        <span class="blood-badge">${r.blood_group}</span>
+      </div>
+      <div class="rc-info">
+        <span>📍 ${r.city}, ${r.state}</span>
+        <span>📞 ${r.phone || 'N/A'}</span>
+        <span>🩸 ${r.units_needed} units needed</span>
+        <span>👤 Patient: ${r.patient_name || 'Anonymous'}</span>
+        <span>🕐 ${new Date(r.created_at).toLocaleDateString()}</span>
+      </div>
+      <span class="badge badge-${r.urgency==='critical'?'red':r.urgency==='urgent'?'orange':'green'}">${r.urgency.toUpperCase()}</span>
+    </div>`).join('') + '</div>';
+}
+</script>
+</body>
+</html>

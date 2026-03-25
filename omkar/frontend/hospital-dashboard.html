@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hospital Dashboard - BloodDrop</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="dashboard">
+  <div class="sidebar">
+    <div class="sidebar-logo">🏥 Blood<span>Drop</span></div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="avatarLetter" style="background:#1a1a2e">H</div>
+      <div class="user-info"><strong id="sidebarName">Hospital</strong><p>Hospital Account</p></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="active" onclick="showPanel('overview',this)"><span class="icon">📊</span> Overview</a>
+      <a onclick="showPanel('requests',this)"><span class="icon">🆘</span> Blood Requests</a>
+      <a onclick="showPanel('inventory',this)"><span class="icon">🩸</span> Blood Inventory</a>
+      <a onclick="showPanel('donations',this)"><span class="icon">📋</span> Donations</a>
+      <a onclick="showPanel('donors',this)"><span class="icon">🔍</span> Find Donors</a>
+      <a onclick="showPanel('profile',this)"><span class="icon">👤</span> Profile</a>
+      <a onclick="logout()" style="color:rgba(255,100,100,0.8)"><span class="icon">🚪</span> Logout</a>
+    </nav>
+  </div>
+
+  <div class="main-content">
+    <!-- OVERVIEW -->
+    <div class="panel active" id="panel-overview">
+      <div class="dash-header">
+        <div><h1>Hospital <span style="color:var(--red)">Dashboard</span></h1><p id="hospitalSubtitle">Blood Bank Management</p></div>
+        <button class="btn btn-primary btn-sm" onclick="showPanel('requests', document.querySelectorAll('.sidebar-nav a')[1]); openRequestModal()">+ New Request</button>
+      </div>
+      <div class="dash-stats">
+        <div class="dash-stat"><div class="stat-icon red">🆘</div><div class="stat-info"><h3 id="openReqs">0</h3><p>Open Requests</p></div></div>
+        <div class="dash-stat"><div class="stat-icon blue">🩸</div><div class="stat-info"><h3 id="totalInv">0</h3><p>Total Blood Units</p></div></div>
+        <div class="dash-stat"><div class="stat-icon green">✅</div><div class="stat-info"><h3 id="totalDons">0</h3><p>Total Donations</p></div></div>
+        <div class="dash-stat"><div class="stat-icon orange">📦</div><div class="stat-info"><h3 id="bloodTypes">0</h3><p>Blood Types Available</p></div></div>
+      </div>
+      <div class="panel active" style="margin-top:0">
+        <div class="panel-header"><h2>Recent Blood Requests</h2><button class="btn btn-primary btn-sm" onclick="openRequestModal()">+ Add Request</button></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Blood Group</th><th>Units</th><th>Patient</th><th>Urgency</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="overviewReqTable"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- REQUESTS -->
+    <div class="panel" id="panel-requests">
+      <div class="panel-header"><h2>Blood Requests</h2><button class="btn btn-primary btn-sm" onclick="openRequestModal()">+ New Request</button></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Blood Group</th><th>Units</th><th>Patient</th><th>Urgency</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+          <tbody id="reqTable"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="panel" id="panel-inventory">
+      <div class="panel-header"><h2>Blood Inventory</h2><button class="btn btn-success btn-sm" onclick="saveInventory()">💾 Save All</button></div>
+      <p style="color:#666; margin-bottom:1.5rem">Update available units for each blood group in your blood bank.</p>
+      <div class="inventory-grid" id="inventoryGrid">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- DONATIONS -->
+    <div class="panel" id="panel-donations">
+      <div class="panel-header"><h2>Donation Records</h2><button class="btn btn-primary btn-sm" onclick="openDonationModal()">+ Record Donation</button></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Donor</th><th>Blood Group</th><th>Units</th><th>Status</th></tr></thead>
+          <tbody id="donTable"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FIND DONORS -->
+    <div class="panel" id="panel-donors">
+      <div class="panel-header"><h2>Find Donors</h2></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:1rem; margin-bottom:1.5rem; align-items:end">
+        <div class="form-group" style="margin:0"><label>Blood Group</label>
+          <select id="fd-blood">
+            <option value="">All</option>
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0"><label>City</label><input type="text" id="fd-city" placeholder="Mumbai"></div>
+        <div class="form-group" style="margin:0"><label>State</label><input type="text" id="fd-state" placeholder="Maharashtra"></div>
+        <button class="btn btn-primary" onclick="findDonors()">Search</button>
+      </div>
+      <div id="donorResults"><div class="empty-state"><div class="empty-icon">🔍</div><p>Search for donors above</p></div></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="panel" id="panel-profile">
+      <div class="panel-header"><h2>Hospital Profile</h2></div>
+      <div id="profileInfo" class="loading">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- REQUEST MODAL -->
+<div class="modal-overlay" id="requestModal">
+  <div class="modal">
+    <div class="modal-header"><h3>New Blood Request</h3><button class="modal-close" onclick="closeModal('requestModal')">✕</button></div>
+    <div id="alert-req" class="alert"></div>
+    <form onsubmit="submitRequest(event)">
+      <div class="form-row">
+        <div class="form-group"><label>Blood Group *</label>
+          <select id="req-blood" required>
+            <option value="">Select</option>
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Units Needed *</label><input type="number" id="req-units" min="1" required></div>
+      </div>
+      <div class="form-group"><label>Patient Name</label><input type="text" id="req-patient" placeholder="Optional"></div>
+      <div class="form-group"><label>Urgency *</label>
+        <select id="req-urgency" required>
+          <option value="normal">Normal</option>
+          <option value="urgent">Urgent</option>
+          <option value="critical">Critical</option>
+        </select>
+      </div>
+      <button type="submit" class="form-submit">Post Request</button>
+    </form>
+  </div>
+</div>
+
+<!-- DONATION MODAL -->
+<div class="modal-overlay" id="donationModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Record Donation</h3><button class="modal-close" onclick="closeModal('donationModal')">✕</button></div>
+    <div id="alert-don" class="alert"></div>
+    <form onsubmit="submitDonation(event)">
+      <div class="form-group"><label>Donor ID *</label><input type="number" id="don-donor" placeholder="Donor's ID number" required></div>
+      <div class="form-row">
+        <div class="form-group"><label>Blood Group *</label>
+          <select id="don-blood" required>
+            <option value="">Select</option>
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Units *</label><input type="number" id="don-units" min="1" value="1" required></div>
+      </div>
+      <div class="form-group"><label>Donation Date *</label><input type="date" id="don-date" required></div>
+      <div class="form-group"><label>Request ID (optional)</label><input type="number" id="don-reqid" placeholder="Link to a request"></div>
+      <button type="submit" class="form-submit">Record Donation</button>
+    </form>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+requireAuth('hospital');
+const user = getUser();
+document.getElementById('sidebarName').textContent = user.name || 'Hospital';
+document.getElementById('avatarLetter').textContent = (user.name || 'H')[0].toUpperCase();
+document.getElementById('hospitalSubtitle').textContent = user.city ? `${user.city} Blood Bank` : 'Blood Bank Management';
+
+function showPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  if (name === 'requests') loadRequests();
+  if (name === 'inventory') loadInventory();
+  if (name === 'donations') loadDonations();
+  if (name === 'profile') loadProfile();
+}
+
+function openRequestModal() { document.getElementById('requestModal').classList.add('show'); }
+function openDonationModal() { document.getElementById('donationModal').classList.add('show'); document.getElementById('don-date').value = new Date().toISOString().split('T')[0]; }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+const BLOOD_GROUPS = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+
+function reqRow(r) {
+  return `<tr>
+    <td><span class="blood-badge">${r.blood_group}</span></td>
+    <td>${r.units_needed}</td><td>${r.patient_name || '-'}</td>
+    <td><span class="badge badge-${r.urgency==='critical'?'red':r.urgency==='urgent'?'orange':'green'}">${r.urgency.toUpperCase()}</span></td>
+    <td><span class="badge badge-${r.status==='open'?'blue':r.status==='fulfilled'?'green':'gray'}">${r.status}</span></td>
+    <td>${new Date(r.created_at).toLocaleDateString()}</td>
+    <td><select onchange="updateReqStatus(${r.id},this.value)" style="padding:4px 8px;border-radius:6px;border:1px solid #ddd;font-size:0.8rem">
+      <option ${r.status==='open'?'selected':''} value="open">Open</option>
+      <option ${r.status==='fulfilled'?'selected':''} value="fulfilled">Fulfilled</option>
+      <option ${r.status==='closed'?'selected':''} value="closed">Closed</option>
+    </select></td>
+  </tr>`;
+}
+
+async function loadOverview() {
+  try {
+    const [reqs, inv, dons] = await Promise.all([
+      api('/hospital/requests','GET'),
+      api('/hospital/inventory','GET'),
+      api('/hospital/donations','GET')
+    ]);
+    document.getElementById('openReqs').textContent = reqs.filter(r=>r.status==='open').length;
+    document.getElementById('totalInv').textContent = inv.reduce((s,i)=>s+i.units_available,0);
+    document.getElementById('totalDons').textContent = dons.length;
+    document.getElementById('bloodTypes').textContent = inv.filter(i=>i.units_available>0).length;
+    const tbody = document.getElementById('overviewReqTable');
+    tbody.innerHTML = reqs.length ? reqs.slice(0,5).map(reqRow).join('') : '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">✅</div><p>No requests yet</p></div></td></tr>';
+  } catch(e) {}
+}
+
+async function loadRequests() {
+  try {
+    const data = await api('/hospital/requests','GET');
+    const tbody = document.getElementById('reqTable');
+    tbody.innerHTML = data.length ? data.map(reqRow).join('') : '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div><p>No requests yet</p></div></td></tr>';
+  } catch(e) {}
+}
+
+async function updateReqStatus(id, status) {
+  try { await api(`/hospital/requests/${id}`, 'PUT', { status }); loadOverview(); } catch(e) {}
+}
+
+async function loadInventory() {
+  try {
+    const data = await api('/hospital/inventory','GET');
+    const map = {};
+    data.forEach(i => map[i.blood_group] = i.units_available);
+    document.getElementById('inventoryGrid').innerHTML = BLOOD_GROUPS.map(bg => `
+      <div class="inv-card">
+        <div class="bg">${bg}</div>
+        <div style="margin:8px 0"><input type="number" id="inv-${bg.replace('+','p').replace('-','m')}" value="${map[bg]||0}" min="0"></div>
+        <div class="label">Units Available</div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+async function saveInventory() {
+  try {
+    for (const bg of BLOOD_GROUPS) {
+      const id = 'inv-' + bg.replace('+','p').replace('-','m');
+      const units = parseInt(document.getElementById(id).value) || 0;
+      await api('/hospital/inventory','POST',{ blood_group: bg, units_available: units });
+    }
+    alert('Inventory saved successfully!');
+    loadOverview();
+  } catch(e) { alert('Error saving inventory'); }
+}
+
+async function loadDonations() {
+  try {
+    const data = await api('/hospital/donations','GET');
+    const tbody = document.getElementById('donTable');
+    tbody.innerHTML = data.length ? data.map(d=>`<tr>
+      <td>${new Date(d.donation_date).toLocaleDateString()}</td>
+      <td>${d.donor_name}</td>
+      <td><span class="blood-badge">${d.blood_group}</span></td>
+      <td>${d.units}</td>
+      <td><span class="badge badge-${d.status==='completed'?'green':d.status==='scheduled'?'blue':'gray'}">${d.status}</span></td>
+    </tr>`).join('') : '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div><p>No donations recorded</p></div></td></tr>';
+  } catch(e) {}
+}
+
+async function findDonors() {
+  const blood = document.getElementById('fd-blood').value;
+  const city = document.getElementById('fd-city').value;
+  const state = document.getElementById('fd-state').value;
+  if (!blood) { alert('Please select a blood group'); return; }
+  try {
+    const params = new URLSearchParams({ blood_group: blood });
+    if (city) params.append('city', city);
+    if (state) params.append('state', state);
+    const data = await fetch(`${BASE_URL}/blood/donors?${params}`).then(r=>r.json());
+    const container = document.getElementById('donorResults');
+    if (!data.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">😔</div><p>No donors found</p></div>'; return; }
+    container.innerHTML = '<div class="results-grid">' + data.map(d=>`
+      <div class="result-card">
+        <div class="rc-header"><h3>${d.name}</h3><span class="blood-badge">${d.blood_group}</span></div>
+        <div class="rc-info">
+          <span>📍 ${d.city||''}, ${d.state||''}</span>
+          <span>📞 ${d.phone||'N/A'}</span>
+          <span>🗓 Last donated: ${d.last_donation ? new Date(d.last_donation).toLocaleDateString() : 'Never'}</span>
+          <span>🆔 Donor ID: ${d.id}</span>
+        </div>
+      </div>`).join('') + '</div>';
+  } catch(e) {}
+}
+
+async function submitRequest(e) {
+  e.preventDefault();
+  try {
+    await api('/hospital/requests','POST',{
+      blood_group: val('req-blood'), units_needed: val('req-units'),
+      patient_name: val('req-patient'), urgency: val('req-urgency')
+    });
+    closeModal('requestModal');
+    showAlertIn('alert-req','Request posted!','success');
+    loadOverview();
+  } catch(err) { showAlertIn('alert-req', err.message, 'error'); }
+}
+
+async function submitDonation(e) {
+  e.preventDefault();
+  try {
+    await api('/hospital/donations','POST',{
+      donor_id: val('don-donor'), blood_group: val('don-blood'),
+      units: val('don-units'), donation_date: val('don-date'),
+      request_id: val('don-reqid') || null
+    });
+    closeModal('donationModal');
+    alert('Donation recorded!');
+    loadOverview();
+  } catch(err) { showAlertIn('alert-don', err.message, 'error'); }
+}
+
+async function loadProfile() {
+  try {
+    const p = await api('/hospital/profile','GET');
+    document.getElementById('profileInfo').innerHTML = `
+      <div class="profile-card">
+        <div class="profile-avatar">${p.name[0].toUpperCase()}</div>
+        <div class="profile-info">
+          <h2>${p.name}</h2>
+          <p>${p.email}</p>
+          <p>📍 ${p.city}, ${p.state}</p>
+          <p>📞 ${p.phone}</p>
+          <p>🏥 License: ${p.license_no}</p>
+          <p>📅 Registered: ${new Date(p.created_at).toLocaleDateString()}</p>
+        </div>
+      </div>`;
+  } catch(e) {}
+}
+
+loadOverview();
+</script>
+</body>
+</html>
